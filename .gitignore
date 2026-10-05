@@ -1,0 +1,28 @@
+# Local Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Local secrets and environment configuration
+.env
+.env.*
+!.env.example
+
+# Generated pipeline databases and transient outputs
+phase2_output/chroma_db/
+phase2_output/chroma_rag_db/
+*.log
+
+# Local IDE and tool state
+.claude/
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db

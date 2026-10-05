@@ -1,0 +1,199 @@
+Master List of Covenants
+
+POSITIVE (AFFIRMATIVE) COVENANTS
+A. Regulatory & Corporate Compliance
+1. Comply with all applicable laws, RBI regulations, SEBI regulations, Companies Act, 2013 and other regulatory requirements.
+2. Maintain NBFC registration, licenses, approvals and authorizations required for business operations.
+3. Comply with Fair Practices Code and Corporate Governance requirements prescribed by RBI.
+4. Ensure issuance, allotment and listing of NCDs in compliance with applicable regulations.
+5. Maintain all statutory filings and regulatory compliances during the tenor of the NCDs.
+6. Obtain and maintain all approvals, consents, NOCs and authorizations necessary for operations and financing arrangements.
+
+B. End Use & Utilisation Covenants
+7. Utilize NCD proceeds strictly for approved purposes.
+8. Restrict usage of proceeds to permitted business activities.
+9. Submit CA/Statutory Auditor certified End Use Certificate within stipulated timelines.
+10. Ensure no diversion of funds.
+11. Ensure proceeds are not used for:
+* Capital market investments.
+* Equity investments.
+* Real estate investments.
+* Dividend payments.
+* Speculative activities.
+* Restricted sectors.
+12. Obtain prior investor approval before any change in end-use.
+
+C. Security Creation & Maintenance Covenants
+13. Create security before or within stipulated timelines post allotment.
+14. Perfect security by filing CHG-9 with ROC.
+15. Register charges with ROC/CERSAI/other authorities.
+16. Maintain minimum security cover at all times.
+17. Replenish security cover immediately upon shortfall.
+18. Provide periodic Security Cover Certificates certified by CA.
+19. Replace ineligible or delinquent receivables forming part of security pool.
+20. Top-up collateral if security cover falls below required levels.
+21. Maintain first-ranking, exclusive and continuing charge in favour of Debenture Trustee.
+22. Maintain validity and enforceability of all security documents.
+
+D. Financial Covenants
+Portfolio / Asset Quality
+23. Maintain minimum CRAR/Capital Adequacy Ratio.
+24. Maintain Gross NPA below prescribed thresholds.
+25. Maintain Net NPA below prescribed thresholds.
+26. Maintain positive profitability (PAT not negative).
+27. Maintain Debt/Equity ratios within agreed limits.
+28. Maintain DSCR above stipulated threshold.
+29. Raise minimum equity capital within agreed timelines (where applicable).
+30. Ensure no material deterioration in portfolio quality.
+ 
+E. Reporting & Information Covenants
+31. Submit annual audited financial statements.
+32. Submit quarterly financial statements.
+33. Submit monthly MIS reports.
+34. Submit monthly bank statements.
+35. Submit monthly GST returns and GST payment status.
+36. Submit monthly collection reports.
+37. Submit asset cover certificates.
+38. Submit security cover certificates.
+39. Provide periodic portfolio performance reports.
+40. Provide receivables statements.
+41. Furnish compliance certificates from auditors.
+42. Provide information requested by Debenture Trustee or Investors.
+43. Report any covenant breach immediately.
+
+F. Event-Based Reporting Covenants
+44. Notify any Event of Default or Potential Event of Default immediately.
+45. Notify material litigation, arbitration or investigations.
+46. Notify any regulatory action.
+47. Notify winding-up, insolvency or NCLT proceedings.
+48. Notify material adverse effect.
+49. Notify changes in:
+* Shareholding.
+* Board composition.
+* Senior management.
+* Accounting policies.
+* Constitutional documents.
+50. Notify mergers, acquisitions, restructuring proposals and major transactions.
+
+G. Governance Covenants
+51. Maintain adequate internal controls.
+52. Maintain anti-fraud systems.
+53. Maintain AML/KYC compliance systems.
+54. Maintain independent director(s) on the Board.
+55. Maintain board and management control with promoters where agreed.
+56. Comply with investor monitoring requirements.
+
+H. Inspection & Monitoring Covenants
+57. Permit inspection of books and records.
+58. Permit investor audits and monitoring visits.
+59. Cooperate with due diligence exercises.
+60. Provide access to management, operations and records upon notice.
+
+I. Shareholding & Management Covenants
+61. Promoters to retain management control.
+62. Promoters to continue in executive capacity.
+63. Maintain minimum promoter shareholding.
+64. Provide information relating to any proposed secondary sale.
+65. Use promoter liquidity events for prepayment where agreed.
+
+MASTER LIST - NEGATIVE COVENANTS
+A. Capital Structure Restrictions
+1. No buyback of shares.
+2. No redemption of share capital.
+3. No reduction of capital.
+4. No defeasance or return of capital.
+5. No dilution of promoter shareholding below agreed threshold.
+6. No change in capital structure without lender consent.
+7. No issuance of instruments adversely affecting investor rights.
+
+B. Dividend Restrictions
+8. No dividend declaration during default.
+9. No dividend declaration unless adequate provisions are made.
+10. No dividend declaration if debt servicing obligations remain unpaid.
+
+C. Debt Restrictions
+11. No incremental indebtedness without consent.
+12. No pari passu or senior debt creation without approval.
+13. No unsecured borrowing beyond agreed limits.
+14. No off-balance sheet liabilities without consent.
+15. No guarantees or comfort letters except in ordinary course.
+
+D. Security & Asset Disposal Restrictions
+16. No sale of secured assets.
+17. No transfer of charged assets.
+18. No assignment of hypothecated receivables.
+19. No creation of encumbrances over secured assets.
+20. No disposal of material assets/business/divisions.
+21. No compromise with creditors affecting security.
+
+E. Merger / M&A Restrictions
+22. No merger.
+23. No demerger.
+24. No amalgamation.
+25. No consolidation.
+26. No restructuring.
+27. No scheme of arrangement.
+28. No corporate reorganization.
+29. No acquisition or joint venture without consent.
+30. No business transfer impacting investor interests.
+
+F. Business Restrictions
+31. No change in business line.
+32. No diversification outside core business.
+33. No material change in business model.
+34. No new major business activity without consent.
+35. No cessation of business.
+
+G. Constitutional Document Restrictions
+36. No amendment to MOA/AOA without consent.
+37. Exception only for increase in authorized share capital or agreed investor-driven amendments.
+
+H. Related Party Restrictions
+38. No related party transactions except:
+* At arm's length.
+* In ordinary course of business.
+39. No promoter loans or advances prejudicial to debenture holders.
+40. No value leakage to promoters.
+
+I. Shareholding & Control Restrictions
+41. No change in control.
+42. No change in management control.
+43. No dilution of promoter stake below agreed level.
+44. No transfer of promoter shares without consent.
+45. No change in voting rights structure.
+46. No change in board control.
+
+
+J. Transactions Outside Ordinary Course
+47. No loans outside ordinary course of business.
+48. No investments outside ordinary course.
+49. No guarantees outside ordinary course.
+50. No unusual transactions affecting credit profile.
+
+K. Insolvency / Restructuring Restrictions
+51. No voluntary winding-up.
+52. No creditor compromise arrangements.
+53. No insolvency filings.
+54. No debt restructuring without lender approval.
+55. No actions prejudicial to enforceability of security.
+
+Additional Positive Covenants
+* Minimum liquidity buffer (3 months interest coverage).
+* DSRA equal to 1-3 months debt servicing.
+* Quarterly management discussion report.
+* Mandatory rating surveillance.
+* Monthly bank statement sharing.
+* Cash sweep on excess collections.
+Additional Negative Covenants
+* Restricted payments covenant.
+* Acquisition covenant.
+* Affiliate transaction covenant.
+* Asset sale covenant.
+* Additional pari-passu debt covenant.
+* Change of auditor covenant.
+* Key person covenant.
+* Most Favoured Lender (MFL) covenant.
+* Anti-layering covenant.
+* No pledge of promoter shares without consent.
+.
+
