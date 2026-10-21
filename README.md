@@ -5,6 +5,188 @@
 **Status:** Phase 3 - Ollama RAG + LLM analysis complete  
 **Date:** October 3, 2026
 
+> **Current implementation notice:** This README contains historical development
+> notes below. The authoritative behavior is documented in the
+> [Current implementation and OpenJev workflow](#current-implementation-and-openjev-workflow)
+> section. The active pipeline now uses 69 section-aware chunks, 111 canonical
+> investor requirements, exact evidence grounding, and local OpenJev consequence
+> analysis.
+
+---
+
+## Current implementation and OpenJev workflow
+
+This is the current professor-facing description of the working pipeline.
+
+### Professor feedback addressed
+
+The active implementation addresses the requested improvements as follows:
+
+1. **Correct evidence and exact source lines:** ChromaDB retrieves up to ten candidate
+   sections. A lexical reranking layer prioritizes covenant-specific terms such as
+   `CHG-9` and `security cover`. Each result stores an exact source quote, section,
+   page, and estimated cleaned-document line range. Quotes returned by the Ollama
+   model are validated against the retrieved source text; invalid quotes are replaced
+   with deterministic source evidence. Weak matches are classified as `unclear`.
+2. **Deduplicated master list:** The 120 source entries are canonicalized into 111
+   investor requirements. Duplicate security-cover certificates, promoter-shareholding
+   entries, and the seven merger/restructuring restrictions are grouped while all
+   original source IDs and names remain traceable.
+3. **Issuer-specific applicability:** `ISSUER_TYPE` supports `nbfc`, `bank`,
+   `manufacturing`, `corporate`, `real_estate`, and `general`. Issuer-specific
+   metrics can be marked `not_applicable`; those items are excluded from coverage
+   denominators and weakness calculations.
+4. **Investor priority:** Payment/default and acceleration protections are `CRITICAL`;
+   security, financial, leverage, and capital protections are `HIGH`; reporting and
+   monitoring are `MEDIUM`; routine obligations are `LOW`.
+5. **Partial coverage:** Results can be `partial` when a covenant exists but its
+   threshold, frequency, or exceptions materially weaken the protection.
+6. **Breach consequences:** The pipeline separately extracts event-of-default,
+   default-interest, cure-period, acceleration, trustee-remedy, and waiver/consent
+   language from the bond document.
+7. **Waiver mechanics:** Waiver and consent language is separately surfaced so the
+   investor can review majority-consent, trustee-consent, and related mechanics.
+8. **Two-part output:** Part 1 determines covenant existence using RAG plus Ollama.
+   Part 2 passes grounded evidence to local OpenJev for consequence ranking instead
+   of using a generative LLM for that decision.
+
+### Active execution path
+
+```text
+main.py
+  -> src/phase1/phase1_pipeline.py
+  -> phase2_section_aware_chunking.py
+  -> phase3_rag_llm_pipeline.py
+  -> local OpenJev consequence scoring
+```
+
+Run the complete pipeline:
+
+```powershell
+& .\.venv\Scripts\python.exe main.py
+```
+
+Run Phase 3 only when Phase 1 and Phase 2 outputs already exist:
+
+```powershell
+& .\.venv\Scripts\python.exe phase3_rag_llm_pipeline.py
+```
+
+### Part 1: RAG and Ollama covenant existence analysis
+
+Phase 1 cleans the 261-page bond PDF and parses the covenant master list. Phase 2
+detects numbered financial-document sections such as `2.1`, `2.2`, and `8.38`,
+preserving section boundaries and splitting only oversized sections at paragraph or
+list boundaries. The current corpus contains 69 chunks, with source page and line
+metadata.
+
+Phase 3 embeds the chunks with Ollama `nomic-embed-text:latest`, stores them in
+ChromaDB, retrieves candidate sections, lexically reranks them, and asks local
+Ollama `qwen3.5:0.8b` to classify:
+
+```text
+present | partial | absent | unclear | not_applicable
+```
+
+Part 1 does not assess current issuer compliance. It assesses whether the contractual
+protection appears in the bond document.
+
+### Part 2: Local OpenJev consequence analysis
+
+OpenJev is configured locally with:
+
+```text
+Repository: AlexWortega/openjev
+Model folder: qwen3.5-0.8b-nli-v2s-long
+Runtime: transformers + PyTorch + CUDA
+Tested GPU: NVIDIA RTX 3050 Laptop GPU, 4 GB VRAM
+```
+
+The adapter is [openjev_consequence.py](./openjev_consequence.py). It loads the
+model once, uses CUDA when available, falls back to CPU otherwise, truncates premise
+and hypothesis pairs to 512 tokens, and reads the label mapping dynamically from
+`model.config.id2label`.
+
+For every `present` or `partial` covenant with grounded evidence, the exact source
+quote is the OpenJev premise. OpenJev ranks these hypotheses:
+
+| Category | Consequence tested |
+|---|---|
+| `event_of_default` | The breach can constitute an event of default. |
+| `default_interest` | The breach can trigger additional or default interest. |
+| `cure_period` | The issuer receives a defined period to cure the breach. |
+| `acceleration` | The breach can permit acceleration, early repayment, or redemption. |
+| `trustee_remedy` | The trustee has an enforcement or remedy right. |
+| `waiver_and_consent` | Waiver or amendment requires investor, lender, or trustee consent. |
+
+OpenJev scores are entailment rankings, not calibrated legal probabilities. A score
+does not replace review of the complete executed transaction documents.
+
+### OpenJev installation and configuration
+
+```powershell
+& .\.venv\Scripts\python.exe -m pip install transformers accelerate
+& .\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu121
+& .\.venv\Scripts\python.exe -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU')"
+```
+
+The model downloads automatically from Hugging Face on first use and is cached
+outside the repository. The model folder can be overridden with:
+
+```powershell
+$env:OPENJEV_SUBFOLDER = "qwen3.5-0.8b-nli-v2s-long"
+```
+
+No Typesafe API key is required. This project uses the local OpenJev checkpoint,
+not the hosted Typesafe API and not the browser-only SemIf/OpenJev demonstration.
+
+### Current outputs
+
+The machine-readable output is:
+
+```text
+phase3_output/covenant_analysis_rag_llm.json
+```
+
+OpenJev results are stored under:
+
+```json
+"openjev_consequence_analysis"
+```
+
+The investor report is:
+
+```text
+phase3_output/covenant_analysis_investor_rag_report.md
+```
+
+OpenJev output appears in the report under:
+
+```text
+## Part 2 — Breach consequences and waiver mechanics
+### OpenJev-ranked consequence support
+```
+
+The report table shows the covenant, evidence section, highest-ranked consequence,
+and entailment score. The JSON additionally preserves all six scores, the exact
+evidence quote, model metadata, device, and label mapping.
+
+### Verified OpenJev run
+
+The tested run produced:
+
+```text
+Canonical requirements: 111
+Present: 103
+Partial: 3
+Unclear: 5
+OpenJev-eligible covenants: 106
+OpenJev status: success
+OpenJev device: cuda
+```
+
+For a detailed technical explanation, see [OpenJev.md](./OpenJev.md).
+
 ---
 
 ## 📋 PROJECT OVERVIEW
@@ -119,8 +301,8 @@ Generated outputs:
 - `phase3_output/covenant_analysis_rag_llm.json` - retrieval metadata and analysis
 - `phase3_output/covenant_analysis_investor_rag_report.md` - concise investor report
 
-The report omits raw evidence excerpts to reduce reading time, but retains the
-retrieved contract section references for targeted legal follow-up.
+The report includes a short exact evidence quote beside each analyzed covenant,
+along with the contract section, page, and estimated cleaned-document line range.
 
 #### **What We Achieved:**
 Implemented a grounded bond covenant analyzer with:
