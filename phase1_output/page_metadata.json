@@ -35,8 +35,8 @@
     "start_position": 9937,
     "end_position": 13079,
     "sections": [
-      "SECTION 42",
-      "Clause 8.9"
+      "Clause 8.9",
+      "SECTION 42"
     ],
     "warnings": []
   },
@@ -45,8 +45,8 @@
     "end_position": 16004,
     "sections": [
       "SECTION 71",
-      "Section 6",
-      "SECTION 3"
+      "SECTION 3",
+      "Section 6"
     ],
     "warnings": []
   },
@@ -61,16 +61,16 @@
     "end_position": 17828,
     "sections": [
       "SECTION 6",
-      "SECTION 7",
-      "SECTION 9",
-      "SECTION 5",
-      "SECTION 1",
-      "SECTION 4",
       "SECTION 11",
+      "SECTION 1",
       "SECTION 10",
+      "SECTION 5",
+      "SECTION 2",
+      "SECTION 9",
       "SECTION 8",
-      "SECTION 3",
-      "SECTION 2"
+      "SECTION 4",
+      "SECTION 7",
+      "SECTION 3"
     ],
     "warnings": []
   },
@@ -114,8 +114,8 @@
     "start_position": 32291,
     "end_position": 34880,
     "sections": [
-      "Section 88",
-      "Section\n42"
+      "Section\n42",
+      "Section 88"
     ],
     "warnings": []
   },
@@ -183,8 +183,8 @@
     "start_position": 62686,
     "end_position": 66205,
     "sections": [
-      "SECTION 3",
-      "Section 3"
+      "Section 3",
+      "SECTION 3"
     ],
     "warnings": []
   },
@@ -939,8 +939,8 @@
     "start_position": 265196,
     "end_position": 266987,
     "sections": [
-      "SECTION 42",
-      "SECTION 71"
+      "SECTION 71",
+      "SECTION 42"
     ],
     "warnings": []
   },
@@ -948,11 +948,11 @@
     "start_position": 266987,
     "end_position": 267826,
     "sections": [
-      "SECTION 5",
       "SECTION 1",
+      "SECTION 5",
+      "SECTION 2",
       "SECTION 4",
-      "SECTION 3",
-      "SECTION 2"
+      "SECTION 3"
     ],
     "warnings": []
   },
@@ -960,9 +960,9 @@
     "start_position": 267826,
     "end_position": 270634,
     "sections": [
-      "Section 2.18",
+      "SECTION 1",
       "Section\n2.18",
-      "SECTION 1"
+      "Section 2.18"
     ],
     "warnings": []
   },
@@ -994,8 +994,8 @@
     "start_position": 277512,
     "end_position": 279917,
     "sections": [
-      "Section 2.18",
-      "Section\n42"
+      "Section\n42",
+      "Section 2.18"
     ],
     "warnings": []
   },
@@ -1187,8 +1187,8 @@
     "end_position": 327832,
     "sections": [
       "Section 180",
-      "Section\n180",
-      "Section\n42"
+      "Section\n42",
+      "Section\n180"
     ],
     "warnings": []
   },
@@ -1214,8 +1214,8 @@
     "start_position": 333310,
     "end_position": 335412,
     "sections": [
-      "Section 215",
-      "Section 3.3"
+      "Section 3.3",
+      "Section 215"
     ],
     "warnings": []
   },
@@ -1436,8 +1436,8 @@
     "start_position": 421743,
     "end_position": 424469,
     "sections": [
-      "Clause 4.2",
-      "SECTION 4"
+      "SECTION 4",
+      "Clause 4.2"
     ],
     "warnings": []
   },
@@ -1513,8 +1513,8 @@
     "start_position": 440983,
     "end_position": 442464,
     "sections": [
-      "Section 2.18",
-      "Section 2.1"
+      "Section 2.1",
+      "Section 2.18"
     ],
     "warnings": []
   },

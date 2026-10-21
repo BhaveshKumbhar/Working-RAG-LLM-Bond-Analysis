@@ -6,3 +6,6 @@ opencv-python==5.0.0.93
 numpy==2.5.3
 chromadb==1.5.9
 requests==2.34.2
+transformers>=5.0.0
+accelerate>=1.0.0
+# Install a CUDA-compatible PyTorch build separately, as documented in README.md.

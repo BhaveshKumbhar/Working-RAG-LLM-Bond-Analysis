@@ -924,6 +924,65 @@ git push -u origin main
 Before publishing, confirm that `.env`, `.venv`, ChromaDB databases, caches, and
 logs are ignored by `.gitignore`. Never commit API keys or other secrets.
 **Tested On:** Windows 11 + Python 3.10+ (WSL Ubuntu for Ollama initially, now knowledge-based)
+
+## Current professor-review improvements
+
+The active pipeline now applies the following safeguards:
+
+- **Evidence grounding:** ChromaDB retrieves up to ten candidates, then direct covenant
+  vocabulary reranks them. Each result includes an exact matching source span, section,
+  page, and estimated cleaned-document line range. Weak direct matches are reported as
+  `unclear` instead of being presented as confirmed evidence.
+- **Canonical covenant counting:** Known duplicate families (security-cover certificates,
+  promoter shareholding, and the seven merger/restructuring restrictions) are grouped
+  while preserving every original source covenant ID. The current 120 source entries
+  therefore produce 111 canonical investor requirements.
+- **Issuer applicability:** Set `ISSUER_TYPE` before running. Supported values include
+  `nbfc` (default), `bank`, `manufacturing`, `corporate`, `real_estate`, and `general`.
+  Issuer-specific metrics that do not apply are marked `not_applicable` and excluded
+  from coverage percentages.
+- **Priority ranking:** Payment/default remedies are `CRITICAL`; security and financial
+  protections are `HIGH`; capital/leverage restrictions are `HIGH`; reporting is
+  `MEDIUM`; routine obligations are `LOW`.
+- **Partial coverage:** The LLM can return `partial` when a covenant exists but its
+  threshold, testing frequency, or exceptions materially weaken it.
+- **Separate consequence section:** A deterministic extraction stage identifies event of
+  default, default interest, cure periods, acceleration, trustee remedies, and waiver or
+  consent language. This is intentionally separate from existence analysis and is the
+  handoff point for the professor's JEV consequence engine.
+
+Example for a manufacturing issuer:
+
+```powershell
+$env:ISSUER_TYPE = "manufacturing"
+& .\.venv\Scripts\python.exe main.py
+```
+
+OpenJev consequence analysis is now integrated locally. It uses the MIT-licensed
+`AlexWortega/openjev` Hugging Face model and the `qwen3.5-0.8b-nli-v2s-long`
+subfolder. OpenJev receives each exact bond-document evidence quote as the premise
+and scores six typed consequence hypotheses: event of default, default interest,
+cure period, acceleration/early repayment, trustee remedy, and waiver/consent.
+The model is loaded once and reused. Entailment scores are rankings, not calibrated
+probabilities, and are written to the JSON output under `openjev_consequence_analysis`.
+
+Install the local OpenJev runtime:
+
+```powershell
+& .\.venv\Scripts\python.exe -m pip install transformers accelerate
+& .\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu121
+```
+
+The existing RTX 3050 CUDA environment can be checked with:
+
+```powershell
+& .\.venv\Scripts\python.exe -c "import torch; print(torch.cuda.is_available())"
+```
+
+The model is downloaded automatically from Hugging Face on the first Phase 3 run.
+Set `OPENJEV_SUBFOLDER` only if selecting another compatible model folder. If model
+loading fails, the pipeline records the error and label mapping instead of inventing
+a substitute consequence result.
 **GPU:** NVIDIA RTX 3050 4GB (optional - not needed for this phase)
 
 ---

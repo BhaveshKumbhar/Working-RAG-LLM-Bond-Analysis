@@ -99,12 +99,12 @@ class Phase1Pipeline:
         # FIX: Save cleaned full document with UTF-8 encoding
         with open(f"{self.output_dir}/bond_cleaned.txt", 'w', encoding='utf-8') as f:
             f.write(aggregated_text)
-        print(f"✅ Saved cleaned bond document: {self.output_dir}/bond_cleaned.txt")
+        print(f"Saved cleaned bond document: {self.output_dir}/bond_cleaned.txt")
         
         # FIX: Save page boundaries and metadata with UTF-8 encoding
         with open(f"{self.output_dir}/page_metadata.json", 'w', encoding='utf-8') as f:
             json.dump(page_boundaries, f, indent=2, ensure_ascii=False)
-        print(f"✅ Saved page metadata: {self.output_dir}/page_metadata.json")
+        print(f"Saved page metadata: {self.output_dir}/page_metadata.json")
         
         # Save per-page cleaned data
         per_page_data = {
@@ -120,28 +120,28 @@ class Phase1Pipeline:
         # FIX: Save per-page data with UTF-8 encoding
         with open(f"{self.output_dir}/per_page_cleaned_data.json", 'w', encoding='utf-8') as f:
             json.dump(per_page_data, f, indent=2, ensure_ascii=False)
-        print(f"✅ Saved per-page data: {self.output_dir}/per_page_cleaned_data.json")
+        print(f"Saved per-page data: {self.output_dir}/per_page_cleaned_data.json")
         
         # Print Summary
         print("\n" + "=" * 70)
         print("PHASE 1 SUMMARY")
         print("=" * 70)
         print(f"""
-📋 MASTER LIST:
+MASTER LIST:
    - Total covenants parsed: {len(covenants)}
    - Output: master_key.json
 
-📄 BOND DOCUMENT:
+ BOND DOCUMENT:
    - Total pages: {len(cleaned_pages)}
    - Pages with images: {extraction_report['pages_with_images']}
    - Total text length: {len(aggregated_text)} characters
    - Outputs:
-     • bond_cleaned.txt (full document)
-     • page_metadata.json (page locations + sections)
-     • per_page_cleaned_data.json (detailed per-page data)
-     • extraction_report.json (processing summary)
+     - bond_cleaned.txt (full document)
+     - page_metadata.json (page locations + sections)
+     - per_page_cleaned_data.json (detailed per-page data)
+     - extraction_report.json (processing summary)
 
-✅ Phase 1 Complete! Ready for Phase 2 (Chunking & Indexing)
+Phase 1 Complete! Ready for Phase 2 (Chunking & Indexing)
         """)
         
         return master_key, cleaned_pages, aggregated_text

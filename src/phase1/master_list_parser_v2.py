@@ -177,7 +177,7 @@ class MasterListParserV2:
     
     def parse_positive_covenants(self, text: str) -> List[Covenant]:
         """Parse positive covenants section"""
-        print("📋 Parsing POSITIVE Covenants...")
+        print("Parsing POSITIVE Covenants...")
         
         covenants = []
         
@@ -230,12 +230,12 @@ class MasterListParserV2:
                 # This is a sub-item, it will be captured in next parse
                 pass
         
-        print(f"✅ Parsed {len(covenants)} positive covenants")
+        print(f"Parsed {len(covenants)} positive covenants")
         return covenants
     
     def parse_negative_covenants(self, text: str) -> List[Covenant]:
         """Parse negative covenants section"""
-        print("📋 Parsing NEGATIVE Covenants...")
+        print("Parsing NEGATIVE Covenants...")
         
         covenants = []
         
@@ -282,12 +282,12 @@ class MasterListParserV2:
                 if covenant:
                     covenants.append(covenant)
         
-        print(f"✅ Parsed {len(covenants)} negative covenants")
+        print(f"Parsed {len(covenants)} negative covenants")
         return covenants
     
     def parse_additional_covenants(self, text: str) -> List[Covenant]:
         """Parse additional covenants (bullet points)"""
-        print("📋 Parsing ADDITIONAL Covenants...")
+        print("Parsing ADDITIONAL Covenants...")
         
         covenants = []
         counter = 0
@@ -345,7 +345,7 @@ class MasterListParserV2:
                     )
                     covenants.append(covenant)
         
-        print(f"✅ Parsed {len(covenants)} additional covenants")
+        print(f"Parsed {len(covenants)} additional covenants")
         return covenants
     
     def parse_master_list(self, master_list_text: str) -> List[Dict]:
@@ -418,17 +418,17 @@ class MasterListParserV2:
         with open(output_path, 'w') as f:
             json.dump(master_key, f, indent=2)
         
-        print(f"\n✅ Master key saved to {output_path}")
+        print(f"\nMaster key saved to {output_path}")
         print(f"""
-📊 COVENANT SUMMARY:
+COVENANT SUMMARY:
    Total Covenants: {len(covenants)}
-   ├─ Positive Covenants: {positive_count}
-   └─ Negative Covenants: {negative_count}
+   - Positive Covenants: {positive_count}
+   - Negative Covenants: {negative_count}
    
-📁 SECTIONS FOUND:
+SECTIONS FOUND:
 """)
         for section, items in by_section.items():
-            print(f"   • {section}: {len(items)} covenants")
+            print(f"   - {section}: {len(items)} covenants")
         
         return master_key
 
@@ -443,7 +443,7 @@ if __name__ == "__main__":
     master_key = parser.save_to_json(covenants, "master_key.json")
     
     # Print first few covenants as sample
-    print("\n📋 SAMPLE COVENANTS:")
+    print("\nSAMPLE COVENANTS:")
     for covenant in covenants[:5]:
         print(f"\n   ID: {covenant['id']}")
         print(f"   Name: {covenant['name']}")

@@ -37,7 +37,7 @@ class BondPDFProcessor:
         self.tesseract_available = self._check_tesseract()
         
         if not self.tesseract_available:
-            print("⚠️  WARNING: Tesseract OCR not available. Images will be skipped.")
+            print("WARNING: Tesseract OCR not available. Images will be skipped.")
             print("   To enable OCR, install Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki")
     
     def _check_tesseract(self) -> bool:
@@ -50,7 +50,7 @@ class BondPDFProcessor:
     
     def extract_text_from_pdf(self) -> Dict[int, str]:
         """Extract text from PDF pages"""
-        print("📄 Extracting text from PDF...")
+        print("Extracting text from PDF...")
         
         text_by_page = {}
         
@@ -66,12 +66,12 @@ class BondPDFProcessor:
                 if (page_num + 1) % 5 == 0:
                     print(f"  Processed {page_num + 1}/{total_pages} pages")
         
-        print(f"✅ Text extraction complete: {total_pages} pages")
+        print(f"Text extraction complete: {total_pages} pages")
         return text_by_page
     
     def extract_images_from_pdf(self) -> Dict[int, List[Image.Image]]:
         """Extract images from PDF pages"""
-        print("🖼️  Extracting images from PDF...")
+        print("Extracting images from PDF...")
         
         images_by_page = {}
         
@@ -107,7 +107,7 @@ class BondPDFProcessor:
                 if images:
                     images_by_page[page_num + 1] = images
         
-        print(f"✅ Image extraction complete: {image_count} images found")
+        print(f"Image extraction complete: {image_count} images found")
         return images_by_page
     
     def preprocess_image(self, image: Image.Image) -> Image.Image:
@@ -130,7 +130,7 @@ class BondPDFProcessor:
             
             return Image.fromarray(scaled)
         except Exception as e:
-            print(f"    ⚠️  Image preprocessing failed: {str(e)}")
+            print(f"    Image preprocessing failed: {str(e)}")
             return image
     
     def ocr_image(self, image: Image.Image) -> Tuple[str, float]:
@@ -155,19 +155,19 @@ class BondPDFProcessor:
             return text, avg_confidence
         
         except pytesseract.TesseractNotFoundError:
-            print(f"    ⚠️  Tesseract not found in PATH")
+            print("    Tesseract not found in PATH")
             return "", 0.0
         except Exception as e:
-            print(f"    ⚠️  OCR Error: {str(e)}")
+            print(f"    OCR Error: {str(e)}")
             return "", 0.0
     
     def extract_images_and_ocr(self) -> Dict[int, Tuple[str, float]]:
         """Extract and OCR all images"""
         if not self.tesseract_available:
-            print("🔍 Skipping OCR (Tesseract not available)")
+            print("Skipping OCR (Tesseract not available)")
             return {}
         
-        print("🔍 Running OCR on extracted images...")
+        print("Running OCR on extracted images...")
         
         images_by_page = self.extract_images_from_pdf()
         ocr_results = {}
@@ -191,20 +191,20 @@ class BondPDFProcessor:
                     else:
                         failed += 1
                 except Exception as e:
-                    print(f"    ⚠️  Failed to OCR image: {str(e)}")
+                    print(f"    Failed to OCR image: {str(e)}")
                     failed += 1
                 
                 processed += 1
                 
                 if processed % 5 == 0:
-                    print(f"  Processed {processed}/{total_images} images (✅ {successful}, ❌ {failed})")
+                    print(f"  Processed {processed}/{total_images} images ({successful} successful, {failed} failed)")
             
             if ocr_texts:
                 combined_text = "\n".join(ocr_texts)
                 avg_confidence = np.mean(confidences) if confidences else 0.0
                 ocr_results[page_num] = (combined_text, avg_confidence)
         
-        print(f"✅ OCR complete: {len(ocr_results)} pages with OCR results")
+        print(f"OCR complete: {len(ocr_results)} pages with OCR results")
         print(f"   Images processed: {successful}/{total_images} successful, {failed} failed")
         
         return ocr_results
@@ -213,7 +213,7 @@ class BondPDFProcessor:
                           text_by_page: Dict[int, str], 
                           ocr_results: Dict[int, Tuple[str, float]]) -> Dict[int, ExtractedPage]:
         """Merge extracted text and OCR results"""
-        print("🔗 Merging text and OCR results...")
+        print("Merging text and OCR results...")
         
         merged_pages = {}
         
@@ -250,7 +250,7 @@ class BondPDFProcessor:
             
             merged_pages[page_num] = page
         
-        print(f"✅ Merging complete: {len(merged_pages)} pages processed")
+        print(f"Merging complete: {len(merged_pages)} pages processed")
         return merged_pages
 
 # Usage
@@ -266,6 +266,6 @@ if __name__ == "__main__":
     # Merge results
     merged_pages = processor.merge_text_and_ocr(text_by_page, ocr_results)
     
-    print(f"\n📊 Summary:")
+    print("\nSummary:")
     print(f"  Total pages: {len(merged_pages)}")
     print(f"  Pages with OCR: {sum(1 for p in merged_pages.values() if p.has_images)}")

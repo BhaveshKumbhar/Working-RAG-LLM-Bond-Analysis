@@ -121,6 +121,10 @@ def parse_sections(text: str, max_words: int = 850) -> Tuple[List[Dict], Dict]:
         parts = split_at_boundaries(body, max_words) if len(body.split()) > max_words else [body]
         page = nearest_page(lines, line_number)
         for part_index, part in enumerate(parts, start=1):
+            part_offset = body.find(part[:120])
+            part_offset = max(0, part_offset)
+            source_line_start = line_number + 2 + body[:part_offset].count("\n")
+            source_line_end = source_line_start + max(0, part.count("\n"))
             suffix = f".part{part_index}" if len(parts) > 1 else ""
             base_id = f"section_{section_number.replace('.', '_')}{suffix}"
             id_counts[base_id] = id_counts.get(base_id, 0) + 1
@@ -134,6 +138,8 @@ def parse_sections(text: str, max_words: int = 850) -> Tuple[List[Dict], Dict]:
                     "source_title": title,
                     "parent_section": parent_number,
                     "page": page,
+                    "source_line_start": source_line_start,
+                    "source_line_end": source_line_end,
                     "chunk_type": "numbered_subsection"
                     if len(parts) == 1
                     else "numbered_subsection_part",

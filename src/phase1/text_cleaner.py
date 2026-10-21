@@ -124,7 +124,7 @@ class BondTextCleaner:
     
     def clean_full_document(self, pages: Dict[int, str]) -> Dict[int, CleanedPage]:
         """Clean entire document"""
-        print("🧹 Cleaning bond document...")
+        print("Cleaning bond document...")
         
         cleaned_pages = {}
         
@@ -133,9 +133,9 @@ class BondTextCleaner:
             cleaned_pages[page_num] = cleaned_page
             
             if cleaned_page.warnings:
-                print(f"  ⚠️  Page {page_num}: {', '.join(cleaned_page.warnings)}")
+                print(f"  Page {page_num}: {', '.join(cleaned_page.warnings)}")
         
-        print(f"✅ Cleaning complete: {len(cleaned_pages)} pages")
+        print(f"Cleaning complete: {len(cleaned_pages)} pages")
         return cleaned_pages
 
 # Usage
