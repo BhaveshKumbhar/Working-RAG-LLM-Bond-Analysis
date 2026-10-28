@@ -33,6 +33,8 @@ ISSUER_TYPE = os.getenv("ISSUER_TYPE", "nbfc").strip().lower()
 TOP_K = 3
 RETRIEVAL_CANDIDATES = 10
 MIN_LEXICAL_MATCH = 0.08
+OPENJEV_PRESENCE_THRESHOLD = 0.35
+OPENJEV_PRESENCE_MARGIN = 0.08
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -409,7 +411,76 @@ def classify_consequences_with_jev(
         }
 
 
-def analyze_covenant(covenant: Dict[str, Any], retrieved: List[Dict[str, Any]]) -> Dict[str, Any]:
+def classify_presence_with_jev(
+    covenant_name: str,
+    retrieved: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Classify covenant existence before any generative explanation."""
+    from openjev_consequence import load_openjev, nli_entailment_scores
+
+    evidence_items = [
+        item for item in retrieved
+        if item.get("evidence") and item.get("text")
+    ]
+    if not evidence_items:
+        return {
+            "presence": "unclear",
+            "confidence": 0.0,
+            "reason": "No exact evidence span was extracted.",
+            "model": load_openjev(),
+            "section_scores": [],
+        }
+    hypothesis = (
+        f'The bond document explicitly contains this covenant: "{covenant_name}"'
+    )
+    scored = nli_entailment_scores(
+        [item["text"] for item in evidence_items],
+        hypothesis,
+    )
+    section_scores = []
+    for item, scores in zip(evidence_items, scored["scores"]):
+        scores = dict(scores)
+        scores.update({
+            "section": item["section"],
+            "quote": item["evidence"][0],
+        })
+        section_scores.append(scores)
+    best = max(section_scores, key=lambda item: item["entailment"])
+    margin = best["entailment"] - max(
+        best["contradiction"], best["neutral"]
+    )
+    contradiction_margin = best["contradiction"] - best["entailment"]
+    if (
+        best["entailment"] >= OPENJEV_PRESENCE_THRESHOLD
+        and margin >= OPENJEV_PRESENCE_MARGIN
+    ):
+        presence = "present"
+    elif (
+        max(item["lexical_match"] for item in retrieved) >= MIN_LEXICAL_MATCH
+        and contradiction_margin >= OPENJEV_PRESENCE_MARGIN
+    ):
+        presence = "absent"
+    else:
+        presence = "unclear"
+    return {
+        "presence": presence,
+        "confidence": round(max(0.0, min(1.0, margin)) * 100, 1),
+        "entailment_score": best["entailment"],
+        "contradiction_score": best["contradiction"],
+        "neutral_score": best["neutral"],
+        "confidence_margin": round(margin, 6),
+        "contradiction_margin": round(contradiction_margin, 6),
+        "reason": "Highest OpenJev entailment score across grounded sections.",
+        "model": scored["model"],
+        "section_scores": section_scores,
+    }
+
+
+def analyze_covenant(
+    covenant: Dict[str, Any],
+    retrieved: List[Dict[str, Any]],
+    jev_presence: Dict[str, Any],
+) -> Dict[str, Any]:
     name = covenant.get("name", covenant.get("description", ""))
     context = "\n\n".join(
         f"[{item['section']}] {item['title']}\n"
@@ -418,10 +489,10 @@ def analyze_covenant(covenant: Dict[str, Any], retrieved: List[Dict[str, Any]]) 
     )
     prompt = f"""You are reviewing a bond contract for an investor.
 Do not assess current issuer compliance or financial performance.
-Decide only whether this contractual covenant is explicitly present in the retrieved bond text.
-Use "unclear" when the text is only a weak or indirect match.
-Use "partial" when a covenant is present but its limit, frequency, or exceptions
-materially weaken the stated requirement. Cite only the supplied sections.
+OpenJev has already decided whether the covenant is supported by the retrieved text.
+Do not change its presence decision. Extract details and write investor explanations
+only from the supplied source sections. Use "partial" only if the covenant is
+supported but its limit, frequency, or exceptions materially weaken it.
 
 COVENANT:
 {name}
@@ -429,8 +500,11 @@ COVENANT:
 RETRIEVED BOND SECTIONS:
 {context[:9000]}
 
+OpenJev decision: {jev_presence['presence']}
+OpenJev confidence: {jev_presence['confidence']}
+
 Return only JSON with exactly these keys:
-{{"presence":"present|partial|absent|unclear","confidence":0,"rationale":"one or two sentences",
+{{"presence":"present|partial|absent|unclear","rationale":"one or two sentences",
 "investor_protection":"one sentence","investor_risk":"one sentence",
 "limit":"exact threshold or null","frequency":"testing frequency or null",
 "exceptions":"material exceptions or null","evidence_section":"section id or null",
@@ -439,13 +513,10 @@ Return only JSON with exactly these keys:
     strength, protection, risk = classify_strength(name)
     try:
         llm = ollama_analyze(prompt)
-        presence = str(llm.get("presence", "unclear")).lower()
-        if presence not in {"present", "partial", "absent", "unclear"}:
-            presence = "unclear"
-        confidence = float(llm.get("confidence", 50))
-        if 0.0 <= confidence <= 1.0:
-            confidence *= 100.0
-        confidence = max(0.0, min(95.0, confidence))
+        presence = jev_presence["presence"]
+        confidence = float(jev_presence["confidence"])
+        if presence == "present" and str(llm.get("presence", "")).lower() == "partial":
+            presence = "partial"
         rationale = str(llm.get("rationale", "LLM returned no rationale."))
         investor_protection = str(llm.get("investor_protection", protection))
         investor_risk = str(llm.get("investor_risk", risk))
@@ -457,7 +528,7 @@ Return only JSON with exactly these keys:
         llm_status = "success"
     except Exception as exc:
         logger.warning("LLM fallback for %s: %s", covenant.get("id"), exc)
-        presence, confidence = "unclear", 0.0
+        presence, confidence = jev_presence["presence"], float(jev_presence["confidence"])
         rationale = "LLM analysis was unavailable; manual review is required."
         investor_protection, investor_risk = protection, risk
         limit = frequency = exceptions = evidence_section = evidence_quote = None
@@ -493,6 +564,7 @@ Return only JSON with exactly these keys:
         "present": presence == "present",
         "favorable": presence in {"present", "partial"},
         "confidence": round(confidence, 1),
+        "openjev_presence": jev_presence,
         "investor_impact": strength,
         "priority_tier": strength,
         "priority_rank": priority_rank(strength),
@@ -623,9 +695,12 @@ def report(
         "- **Legal review risk:** Semantic retrieval and LLM analysis accelerate review but do not replace counsel's reading of the executed documents.\n\n",
         "## Method and limitations\n\n",
         f"Each covenant was embedded and matched against the top {TOP_K} ChromaDB results built from numbered bond sections. "
-        "The LLM received only those retrieved sections and was instructed to classify contractual presence, not compliance. "
+        "OpenJev first classified contractual existence from grounded retrieved sections. "
+        "Ollama then received the OpenJev decision and extracted limits, frequency, exceptions, and investor explanations; "
+        "it was not allowed to override the OpenJev existence decision. "
         "Each result includes a short exact source span and section identifier so an investor can verify "
-        "the classification quickly. LLM failures are marked as fallbacks in the JSON output and are treated as unclear.\n",
+        "the classification quickly. Ollama failures are marked as fallbacks in the JSON output; "
+        "the OpenJev existence decision remains authoritative.\n",
     ])
     output_file.write_text("".join(lines), encoding="utf-8")
 
@@ -635,6 +710,7 @@ def main() -> None:
     consequence_analysis = extract_consequence_analysis(chunks)
     collection = build_index(chunks)
     results: List[Dict[str, Any]] = []
+    pending_analysis: List[tuple[Dict[str, Any], List[Dict[str, Any]], Dict[str, Any]]] = []
     for index, covenant in enumerate(covenants, start=1):
         logger.info("Retrieving and analyzing covenant %d/%d: %s", index, len(covenants), covenant["id"])
         applicability = not_applicable_reason(covenant["name"], ISSUER_TYPE)
@@ -661,7 +737,25 @@ def main() -> None:
             for i in range(len(retrieved_data["documents"][0]))
         ]
         retrieved = rerank_retrieved(query, retrieved)
-        results.append(analyze_covenant(covenant, retrieved))
+        try:
+            jev_presence = classify_presence_with_jev(query, retrieved)
+        except Exception as exc:
+            logger.exception("OpenJev presence classification failed for %s", covenant["id"])
+            jev_presence = {
+                "presence": "unclear",
+                "confidence": 0.0,
+                "reason": f"OpenJev failed: {exc}",
+                "section_scores": [],
+            }
+        pending_analysis.append((covenant, retrieved, jev_presence))
+
+    # OpenJev and Ollama may both reserve GPU memory. Finish existence scoring
+    # before handing the device to Ollama for detail extraction.
+    from openjev_consequence import unload_openjev
+
+    unload_openjev()
+    for covenant, retrieved, jev_presence in pending_analysis:
+        results.append(analyze_covenant(covenant, retrieved, jev_presence))
 
     present = sum(item["presence"] == "present" for item in results)
     partial = sum(item["presence"] == "partial" for item in results)
@@ -670,7 +764,7 @@ def main() -> None:
     payload = {
         "metadata": {
             "analysis_date": datetime.now().isoformat(),
-            "methodology": "RAG + Ollama LLM contractual covenant presence analysis",
+            "methodology": "RAG + OpenJev covenant existence classification + Ollama detail extraction",
             "embedding_model": EMBED_MODEL,
             "analysis_model": ANALYSIS_MODEL,
             "retrieval_k": TOP_K,
@@ -682,6 +776,18 @@ def main() -> None:
             "not_applicable": sum(item["presence"] == "not_applicable" for item in results),
             "issuer_type": ISSUER_TYPE,
             "llm_fallbacks": sum(item["llm_status"] == "fallback" for item in results),
+            "openjev_presence_status": sum(
+                item.get("openjev_presence", {}).get("presence") == "present"
+                for item in results
+            ),
+            "openjev_presence_model": next(
+                (
+                    item.get("openjev_presence", {}).get("model")
+                    for item in results
+                    if item.get("openjev_presence", {}).get("model")
+                ),
+                None,
+            ),
         },
         "results": results,
     }

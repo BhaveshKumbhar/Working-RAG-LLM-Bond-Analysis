@@ -6,14 +6,15 @@ This project uses a two-part analysis workflow for investor-focused bond covenan
 review:
 
 1. **Covenant existence analysis:** RAG retrieves relevant bond-document sections,
-   and a local Ollama model classifies whether each canonical covenant is present,
-   partial, absent, or unclear.
-2. **Consequence analysis:** OpenJev evaluates the exact source evidence for each
-   present or partial covenant and ranks the investor consequences supported by that
-   evidence.
+   and local OpenJev classifies whether each canonical covenant is present, absent,
+   or unclear.
+2. **Detail and consequence analysis:** Ollama extracts limits, frequency,
+   exceptions, and investor explanations from the OpenJev decision and grounded
+   text. OpenJev then ranks the investor consequences supported by exact evidence.
 
-OpenJev is used only for the second part. It does not replace the RAG retrieval
-stage and it is not used to decide whether the covenant exists.
+OpenJev is authoritative for the existence decision. Ollama does not replace that
+decision; it enriches it with structured contractual details and readable
+explanations.
 
 This separation follows the recommended review approach: first determine whether a
 covenant exists, then independently identify what may happen if that covenant is
@@ -53,15 +54,15 @@ the tested consequence hypothesis relative to the other hypotheses.
 
 ## Why OpenJev is used
 
-The Ollama model is useful for flexible covenant-presence analysis and explanation,
-but consequence analysis benefits from a focused discriminative model:
+The Ollama model is useful for flexible detail extraction and explanation, while
+both existence and consequence analysis benefit from a focused discriminative model:
 
 - It does not generate free-form legal explanations.
 - It compares source evidence against predefined consequence hypotheses.
 - It produces structured scores that can be ranked deterministically.
 - It reduces the risk of an autoregressive model inventing a remedy that is not
   supported by the document.
-- It keeps the consequence decision separate from the Part 1 existence decision.
+- It keeps the existence and consequence decisions grounded in source evidence.
 
 OpenJev is therefore used to answer questions such as:
 
@@ -216,7 +217,7 @@ Ollama embedding with nomic-embed-text
 ChromaDB retrieval and lexical evidence grounding
         |
         v
-Ollama covenant existence analysis
+OpenJev covenant existence analysis
         |
         v
 Exact evidence quotes for present/partial covenants
@@ -234,11 +235,13 @@ For each covenant, Part 1:
 2. Retrieves candidate numbered bond sections from ChromaDB.
 3. Reranks candidates using direct covenant vocabulary.
 4. Extracts exact matching evidence spans.
-5. Sends the grounded context to the Ollama analysis model.
-6. Classifies the covenant as `present`, `partial`, `absent`, or `unclear`.
+5. Sends each grounded section and the covenant hypothesis to OpenJev.
+6. Classifies the covenant as `present`, `absent`, or `unclear`.
+7. Sends the OpenJev decision and grounded context to Ollama for limits,
+   frequency, exceptions, and investor explanation extraction.
 
 Only results classified as `present` or `partial` and containing an exact evidence
-quote are passed to OpenJev.
+quote are passed to the consequence-ranking stage of OpenJev.
 
 For each eligible covenant, Part 2:
 
@@ -267,8 +270,8 @@ decision categories across all covenants.
 
 ## Running the project
 
-Start Ollama first because Part 1 still uses Ollama for embeddings and covenant
-existence analysis:
+Start Ollama first because it is still required for embeddings and detail
+extraction; OpenJev performs the covenant existence classification:
 
 ```powershell
 ollama serve
@@ -415,7 +418,8 @@ Important limitations:
 - A high score does not constitute legal advice.
 - The model evaluates the supplied evidence quote; it does not search the entire
   bond document itself.
-- If Part 1 cannot find a grounded quote, that covenant is not passed to OpenJev.
+- If Part 1 cannot find a grounded quote, the existence result remains `unclear`
+  and no consequence ranking is attempted.
 - A consequence ranking must still be reviewed against the complete executed
   transaction documents by a legal professional.
 - The exact source quote is more important than the score when interpreting a

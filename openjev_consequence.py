@@ -21,6 +21,16 @@ class OpenJevLoadError(RuntimeError):
         self.label2id = label2id or {}
 
 
+def unload_openjev() -> None:
+    """Release OpenJev memory before the Ollama model is used."""
+    global _tokenizer, _model, _label2id
+    _tokenizer = None
+    _model = None
+    _label2id = None
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def load_openjev() -> Dict[str, Any]:
     """Load the local OpenJev classifier once and expose its runtime metadata."""
     global _tokenizer, _model, _label2id
@@ -95,6 +105,35 @@ def consequence_entailment(
         for index, name in enumerate(names)
     }
     return {"scores": scores, "model": metadata}
+
+
+def nli_entailment_scores(
+    premises: list[str],
+    hypothesis: str,
+) -> Dict[str, Any]:
+    """Score one existence hypothesis against multiple retrieved premises."""
+    metadata = load_openjev()
+    inputs = _tokenizer(
+        premises,
+        [hypothesis] * len(premises),
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+        padding=True,
+    ).to(DEVICE)
+    with torch.no_grad():
+        probabilities = _model(**inputs).logits.softmax(dim=-1)
+    return {
+        "scores": [
+            {
+                "contradiction": round(row[_label2id["contradiction"]].item(), 6),
+                "entailment": round(row[_label2id["entailment"]].item(), 6),
+                "neutral": round(row[_label2id["neutral"]].item(), 6),
+            }
+            for row in probabilities
+        ],
+        "model": metadata,
+    }
 
 
 if __name__ == "__main__":

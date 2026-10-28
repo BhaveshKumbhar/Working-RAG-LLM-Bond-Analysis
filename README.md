@@ -46,9 +46,10 @@ The active implementation addresses the requested improvements as follows:
    language from the bond document.
 7. **Waiver mechanics:** Waiver and consent language is separately surfaced so the
    investor can review majority-consent, trustee-consent, and related mechanics.
-8. **Two-part output:** Part 1 determines covenant existence using RAG plus Ollama.
-   Part 2 passes grounded evidence to local OpenJev for consequence ranking instead
-   of using a generative LLM for that decision.
+8. **Two-part output:** Part 1 determines covenant existence using grounded RAG
+   sections plus local OpenJev. Part 2 passes the OpenJev decision and evidence to
+   Ollama for limit/frequency/exception extraction and investor explanation. OpenJev
+   also performs an optional consequence-entailment ranking in Part 2.
 
 ### Active execution path
 
@@ -57,7 +58,9 @@ main.py
   -> src/phase1/phase1_pipeline.py
   -> phase2_section_aware_chunking.py
   -> phase3_rag_llm_pipeline.py
-  -> local OpenJev consequence scoring
+  -> OpenJev existence classification
+  -> Ollama detail extraction and investor explanation
+  -> OpenJev consequence ranking
 ```
 
 Run the complete pipeline:
@@ -72,7 +75,7 @@ Run Phase 3 only when Phase 1 and Phase 2 outputs already exist:
 & .\.venv\Scripts\python.exe phase3_rag_llm_pipeline.py
 ```
 
-### Part 1: RAG and Ollama covenant existence analysis
+### Part 1: RAG and OpenJev covenant existence analysis
 
 Phase 1 cleans the 261-page bond PDF and parses the covenant master list. Phase 2
 detects numbered financial-document sections such as `2.1`, `2.2`, and `8.38`,
@@ -81,8 +84,11 @@ list boundaries. The current corpus contains 69 chunks, with source page and lin
 metadata.
 
 Phase 3 embeds the chunks with Ollama `nomic-embed-text:latest`, stores them in
-ChromaDB, retrieves candidate sections, lexically reranks them, and asks local
-Ollama `qwen3.5:0.8b` to classify:
+ChromaDB, retrieves candidate sections, and lexically reranks them. OpenJev then
+classifies covenant existence from the grounded sections using entailment,
+contradiction, and neutral scores. Local Ollama `qwen3.5:0.8b` receives the
+OpenJev decision and extracts details and explanations. It no longer controls the
+existence status.
 
 ```text
 present | partial | absent | unclear | not_applicable
@@ -91,7 +97,7 @@ present | partial | absent | unclear | not_applicable
 Part 1 does not assess current issuer compliance. It assesses whether the contractual
 protection appears in the bond document.
 
-### Part 2: Local OpenJev consequence analysis
+### Part 2: Local OpenJev existence and consequence analysis
 
 OpenJev is configured locally with:
 
@@ -107,8 +113,19 @@ model once, uses CUDA when available, falls back to CPU otherwise, truncates pre
 and hypothesis pairs to 512 tokens, and reads the label mapping dynamically from
 `model.config.id2label`.
 
-For every `present` or `partial` covenant with grounded evidence, the exact source
-quote is the OpenJev premise. OpenJev ranks these hypotheses:
+For covenant existence, OpenJev receives each grounded retrieved section as a
+premise and the hypothesis:
+
+```text
+The bond document explicitly contains this covenant: "<covenant name>"
+```
+
+The strongest section-level scores determine `present`, `absent`, or `unclear`.
+Confidence is derived from the score margin and is reported as a ranking signal,
+not a calibrated probability. Ollama receives this decision and cannot override
+it. Ollama extracts limits, frequency, exceptions, and readable investor
+explanations. For every `present` or `partial` covenant with grounded evidence,
+the exact source quote is also passed to OpenJev to rank these consequence hypotheses:
 
 | Category | Consequence tested |
 |---|---|
@@ -168,8 +185,10 @@ OpenJev output appears in the report under:
 ```
 
 The report table shows the covenant, evidence section, highest-ranked consequence,
-and entailment score. The JSON additionally preserves all six scores, the exact
-evidence quote, model metadata, device, and label mapping.
+and entailment score. The JSON additionally preserves the OpenJev existence
+decision, entailment/contradiction/neutral scores, confidence margin, all six
+consequence scores, the exact evidence quote, model metadata, device, and label
+mapping.
 
 ### Verified OpenJev run
 
